@@ -2,30 +2,26 @@ import React, { useState } from 'react'
 import { Form, Input, Button, Card, Typography, message, Space } from 'antd'
 import { UserOutlined, LockOutlined, MailOutlined, StarFilled } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom'
+import { authApi } from '@/api/auth'
+import type { RegisterRequest } from '@/types'
 
 const { Title, Text } = Typography
-
-interface RegisterForm {
-  username: string
-  email: string
-  password: string
-  confirmPassword: string
-}
 
 const Register: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleSubmit = async (values: RegisterForm) => {
+  const handleSubmit = async (values: RegisterRequest) => {
     setLoading(true)
     try {
-      // 模拟注册API调用
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // 调用注册API
+      const response = await authApi.register(values)
       
-      message.success('注册成功！请登录')
+      message.success(response.message || '注册成功！请登录')
       navigate('/login')
     } catch (error) {
-      message.error('注册失败，请稍后重试')
+      // 错误处理已在API客户端中统一处理
+      console.error('注册失败:', error)
     } finally {
       setLoading(false)
     }

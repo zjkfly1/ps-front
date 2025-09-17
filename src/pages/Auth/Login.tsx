@@ -3,40 +3,29 @@ import { Form, Input, Button, Card, Typography, message, Space } from 'antd'
 import { UserOutlined, LockOutlined, StarFilled } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
+import { authApi } from '@/api/auth'
+import type { LoginRequest } from '@/types'
 
 const { Title, Text } = Typography
-
-interface LoginForm {
-  username: string
-  password: string
-}
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const { login } = useAuthStore()
 
-  const handleSubmit = async (values: LoginForm) => {
+  const handleSubmit = async (values: LoginRequest) => {
     setLoading(true)
     try {
-      // 模拟登录API调用
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // 调用登录API
+      const response = await authApi.login(values)
       
-      // 模拟登录成功数据
-      const userData = {
-        id: '1',
-        username: values.username,
-        email: 'user@example.com',
-        credits: 1000,
-      }
-      
-      const token = 'mock-jwt-token'
-      
-      login(userData, token)
+      // 登录成功，更新状态
+      login(response.user, response.token)
       message.success('登录成功！')
       navigate('/dashboard')
     } catch (error) {
-      message.error('登录失败，请检查用户名和密码')
+      // 错误处理已在API客户端中统一处理
+      console.error('登录失败:', error)
     } finally {
       setLoading(false)
     }

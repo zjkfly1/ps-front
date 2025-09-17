@@ -16,6 +16,14 @@ const { Text } = Typography
 const Header: React.FC = () => {
   const { user, logout } = useAuthStore()
 
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error('退出登录失败:', error)
+    }
+  }
+
   const userMenuItems: MenuProps['items'] = [
     {
       key: 'profile',
@@ -34,7 +42,7 @@ const Header: React.FC = () => {
       key: 'logout',
       label: '退出登录',
       icon: <LogoutOutlined />,
-      onClick: logout,
+      onClick: handleLogout,
     },
   ]
 

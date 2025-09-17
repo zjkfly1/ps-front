@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { authApi } from '@/api/auth'
 
 interface User {
   id: string
@@ -33,12 +34,21 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
         }),
         
-      logout: () =>
-        set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-        }),
+      logout: async () => {
+        try {
+          // 调用退出登录API
+          await authApi.logout()
+        } catch (error) {
+          console.error('退出登录API调用失败:', error)
+        } finally {
+          // 无论API调用是否成功，都清除本地状态
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+          })
+        }
+      },
         
       updateUser: (userData) =>
         set((state) => ({
