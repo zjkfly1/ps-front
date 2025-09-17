@@ -8,6 +8,30 @@ export interface User {
   createdAt: string
 }
 
+// 认证相关类型
+export interface LoginRequest {
+  username: string
+  password: string
+}
+
+export interface LoginResponse {
+  user: User
+  token: string
+  expiresIn: number
+}
+
+export interface RegisterRequest {
+  username: string
+  email: string
+  password: string
+  confirmPassword: string
+}
+
+export interface RegisterResponse {
+  user: User
+  message: string
+}
+
 // 达人相关类型
 export interface KOL {
   id: string
