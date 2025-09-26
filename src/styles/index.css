@@ -1,26 +1,60 @@
 /* 全局样式重置 */
-* {
-  margin: 0;
-  padding: 0;
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html,
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
-    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol';
+  height: 100%;
+}
+
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+/* 全局字体设置 */
+body {
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
   font-size: 14px;
-  line-height: 1.5715;
-  color: rgba(0, 0, 0, 0.85);
-  background-color: #f0f2f5;
+  color: #303133;
+  background-color: #f5f7fa;
 }
 
-#root {
-  width: 100%;
-  min-height: 100vh;
-}
-
-/* 自定义滚动条 */
+/* 滚动条样式 */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -40,7 +74,149 @@ body {
   background: #a8a8a8;
 }
 
-/* 通用工具类 */
+/* 链接样式 */
+a {
+  color: #409eff;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: #337ecc;
+}
+
+/* 表格优化 */
+.el-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.el-table th {
+  background-color: #fafafa;
+  font-weight: 500;
+}
+
+.el-table--border::after,
+.el-table--group::after,
+.el-table::before {
+  background-color: #e6e6e6;
+}
+
+/* 卡片样式优化 */
+.el-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  border: 1px solid #e6e6e6;
+}
+
+.el-card__header {
+  padding: 18px 20px;
+  border-bottom: 1px solid #e6e6e6;
+  background-color: #fafafa;
+}
+
+/* 按钮样式优化 */
+.el-button {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.el-button--primary {
+  background-color: #409eff;
+  border-color: #409eff;
+}
+
+.el-button--primary:hover,
+.el-button--primary:focus {
+  background-color: #337ecc;
+  border-color: #337ecc;
+}
+
+/* 表单样式优化 */
+.el-form-item__label {
+  font-weight: 500;
+  color: #606266;
+}
+
+.el-input__wrapper {
+  border-radius: 6px;
+}
+
+.el-select .el-input__wrapper {
+  border-radius: 6px;
+}
+
+/* 菜单样式优化 */
+.el-menu {
+  border: none;
+}
+
+.el-menu-item {
+  border-radius: 6px;
+  margin: 2px 8px;
+}
+
+.el-menu-item:hover,
+.el-menu-item.is-active {
+  background-color: #ecf5ff;
+  color: #409eff;
+}
+
+.el-sub-menu__title:hover {
+  background-color: #ecf5ff;
+  color: #409eff;
+}
+
+/* 标签样式优化 */
+.el-tag {
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* 分页样式优化 */
+.el-pagination {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.el-pagination .btn-next,
+.el-pagination .btn-prev {
+  border-radius: 6px;
+}
+
+.el-pagination .el-pager li {
+  border-radius: 6px;
+}
+
+/* 进度条样式优化 */
+.el-progress-bar__outer {
+  border-radius: 6px;
+}
+
+.el-progress-bar__inner {
+  border-radius: 6px;
+}
+
+/* 消息提示样式优化 */
+.el-message {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 对话框样式优化 */
+.el-dialog {
+  border-radius: 12px;
+}
+
+.el-dialog__header {
+  padding: 20px 20px 10px;
+}
+
+.el-dialog__body {
+  padding: 20px;
+}
+
+/* 工具类 */
 .text-center {
   text-align: center;
 }
@@ -49,31 +225,76 @@ body {
   text-align: right;
 }
 
-.mb-16 {
-  margin-bottom: 16px;
+.text-left {
+  text-align: left;
 }
 
-.mb-24 {
-  margin-bottom: 24px;
+.mb-10 {
+  margin-bottom: 10px;
 }
 
-.mt-16 {
-  margin-top: 16px;
+.mb-20 {
+  margin-bottom: 20px;
 }
 
-.mt-24 {
-  margin-top: 24px;
+.mt-10 {
+  margin-top: 10px;
 }
 
-/* 卡片样式 */
-.custom-card {
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
+.mt-20 {
+  margin-top: 20px;
 }
 
-.custom-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+.ml-10 {
+  margin-left: 10px;
+}
+
+.mr-10 {
+  margin-right: 10px;
+}
+
+.p-10 {
+  padding: 10px;
+}
+
+.p-20 {
+  padding: 20px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .el-col-xs-24 {
+    width: 100%;
+  }
+  
+  .el-pagination {
+    text-align: center;
+  }
+  
+  .el-table {
+    font-size: 12px;
+  }
+  
+  .el-dialog {
+    width: 95% !important;
+    margin: 2.5vh auto;
+  }
+}
+
+/* 自定义动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
 }
 
 /* 加载状态 */
@@ -90,19 +311,15 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 300px;
-  color: rgba(0, 0, 0, 0.45);
+  min-height: 200px;
+  color: #909399;
 }
 
-/* 响应式断点 */
-@media (max-width: 768px) {
-  .ant-layout-sider {
-    position: fixed !important;
-    height: 100vh;
-    z-index: 1000;
-  }
-  
-  .ant-layout-content {
-    margin-left: 0 !important;
-  }
+.empty-container .empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-container .empty-text {
+  font-size: 14px;
 }

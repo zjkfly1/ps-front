@@ -1,5 +1,6 @@
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
-import { message } from 'antd'
+import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig, type AxiosResponse } from 'axios'
+import { ElMessage } from 'element-plus'
+import router from '@/router'
 
 // API 基础配置
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/api'
@@ -9,8 +10,8 @@ const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json',
-  },
+    'Content-Type': 'application/json'
+  }
 })
 
 // 请求拦截器
@@ -59,38 +60,38 @@ apiClient.interceptors.response.use(
           // 未授权，清除本地token并跳转到登录页
           localStorage.removeItem('auth-token')
           localStorage.removeItem('auth-storage')
-          message.error('登录已过期，请重新登录')
-          window.location.href = '/login'
+          ElMessage.error('登录已过期，请重新登录')
+          router.push('/login')
           break
           
         case 403:
-          message.error('权限不足')
+          ElMessage.error('权限不足')
           break
           
         case 404:
-          message.error('请求的资源不存在')
+          ElMessage.error('请求的资源不存在')
           break
           
         case 422:
           // 表单验证错误
           const errorMsg = (data as any)?.message || '请求参数错误'
-          message.error(errorMsg)
+          ElMessage.error(errorMsg)
           break
           
         case 500:
-          message.error('服务器内部错误')
+          ElMessage.error('服务器内部错误')
           break
           
         default:
           const defaultMsg = (data as any)?.message || '请求失败'
-          message.error(defaultMsg)
+          ElMessage.error(defaultMsg)
       }
     } else if (error.request) {
       // 网络错误
-      message.error('网络连接失败，请检查网络设置')
+      ElMessage.error('网络连接失败，请检查网络设置')
     } else {
       // 其他错误
-      message.error('请求处理失败')
+      ElMessage.error('请求处理失败')
     }
     
     return Promise.reject(error)

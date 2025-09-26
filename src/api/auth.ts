@@ -4,7 +4,8 @@ import type {
   LoginResponse, 
   RegisterRequest, 
   RegisterResponse,
-  ApiResponse
+  ApiResponse,
+  User
 } from '@/types'
 
 /**
@@ -62,8 +63,8 @@ export const authApi = {
    * 获取当前用户信息
    * @returns 用户信息
    */
-  getCurrentUser: async () => {
-    const response = await apiClient.get<ApiResponse<{ user: any }>>('/user/profile')
+  getCurrentUser: async (): Promise<User> => {
+    const response = await apiClient.get<ApiResponse<{ user: User }>>('/user/profile')
     
     if (response.data.success && response.data.data) {
       return response.data.data.user

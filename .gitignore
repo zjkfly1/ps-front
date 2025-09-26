@@ -3,6 +3,7 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # Production builds
 dist/
@@ -14,6 +15,16 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Vue3 and Vite specific
+auto-imports.d.ts
+components.d.ts
+*.tsbuildinfo
+
+# Package lock files (keep only one)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # IDE and editor files
 .vscode/

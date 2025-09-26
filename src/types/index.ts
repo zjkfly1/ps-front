@@ -132,3 +132,11 @@ export interface Stats {
     tasks: number
   }
 }
+
+// 路由类型
+export interface RouteMenuItem {
+  path: string
+  name: string
+  icon?: string
+  children?: RouteMenuItem[]
+}
