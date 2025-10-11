@@ -102,6 +102,9 @@ const handleSubmit = async () => {
       try {
         await authStore.login(loginForm)
         ElMessage.success('登录成功！')
+        
+        // 使用 nextTick 确保状态更新后再跳转
+        await new Promise(resolve => setTimeout(resolve, 100))
         router.push('/dashboard')
       } catch (error) {
         console.error('登录失败:', error)

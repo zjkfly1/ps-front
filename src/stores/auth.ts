@@ -17,7 +17,7 @@ export const useAuthStore = defineStore('auth', {
 
   getters: {
     currentUser: (state) => state.user,
-    userCredits: (state) => state.user?.credits ?? 0,
+    userCredits: (state) => state.user?.credits ?? state.user?.points ?? 0, // 兼容两个字段名
     isLoggedIn: (state) => state.isAuthenticated && !!state.token
   },
 

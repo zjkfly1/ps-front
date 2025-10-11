@@ -3,7 +3,10 @@ import { ElMessage } from 'element-plus'
 import router from '@/router'
 
 // API 基础配置
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1'
+
+console.log('API基础地址:', API_BASE_URL)
+console.log('当前环境:', import.meta.env.MODE)
 
 // 创建 axios 实例
 const apiClient: AxiosInstance = axios.create({
@@ -54,6 +57,7 @@ apiClient.interceptors.response.use(
     // 统一错误处理
     if (error.response) {
       const { status, data } = error.response
+      const errorData = data as any
       
       switch (status) {
         case 401:
@@ -74,7 +78,7 @@ apiClient.interceptors.response.use(
           
         case 422:
           // 表单验证错误
-          const errorMsg = (data as any)?.message || '请求参数错误'
+          const errorMsg = errorData?.message || '请求参数错误'
           ElMessage.error(errorMsg)
           break
           
@@ -83,7 +87,8 @@ apiClient.interceptors.response.use(
           break
           
         default:
-          const defaultMsg = (data as any)?.message || '请求失败'
+          // 使用后端返回的message字段
+          const defaultMsg = errorData?.message || '请求失败'
           ElMessage.error(defaultMsg)
       }
     } else if (error.request) {

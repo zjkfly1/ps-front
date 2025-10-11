@@ -1,11 +1,21 @@
 // 用户相关类型
 export interface User {
-  id: string
+  id: number // 后端返回的是数字类型
   username: string
   email: string
-  credits: number
+  phone?: string
   avatar?: string
-  createdAt: string
+  nickname?: string
+  points: number // 后端字段名是 points，不是 credits
+  status: number
+  created_at: string // 后端字段名是 created_at
+  updated_at: string // 后端字段名是 updated_at
+}
+
+// 为了兼容前端其他代码，添加一个计算属性类型
+export interface UserForFrontend extends Omit<User, 'points' | 'created_at'> {
+  credits: number // 映射 points 到 credits
+  createdAt: string // 映射 created_at 到 createdAt
 }
 
 // 认证相关类型
@@ -17,7 +27,6 @@ export interface LoginRequest {
 export interface LoginResponse {
   user: User
   token: string
-  expiresIn: number
 }
 
 export interface RegisterRequest {
@@ -102,12 +111,11 @@ export interface Task {
   completedAt?: string
 }
 
-// API响应类型
+// API响应类型 - 匹配后端返回格式
 export interface ApiResponse<T = any> {
-  success: boolean
+  code: number
+  message: string
   data?: T
-  message?: string
-  code?: number
 }
 
 // 列表查询参数类型
