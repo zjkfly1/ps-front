@@ -76,10 +76,10 @@ export const authApi = {
    * @returns 用户信息
    */
   getCurrentUser: async (): Promise<User> => {
-    const response = await apiClient.get<ApiResponse<{ user: User }>>('/auth/profile')
+    const response = await apiClient.get<ApiResponse<User>>('/user/profile')
     
     if (response.data.code === 200 && response.data.data) {
-      return response.data.data.user || response.data.data as any
+      return response.data.data
     } else {
       throw new Error(response.data.message || '获取用户信息失败')
     }

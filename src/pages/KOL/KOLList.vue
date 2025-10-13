@@ -7,8 +7,8 @@
       <el-form :model="searchForm" :inline="true">
         <el-form-item label="搜索">
           <el-input
-            v-model="searchForm.search"
-            placeholder="搜索达人名称"
+            v-model="searchForm.nickname"
+            placeholder="搜索达人昵称"
             clearable
             style="width: 200px"
           />
@@ -20,7 +20,7 @@
             clearable
             style="width: 120px"
           >
-            <el-option label="抖音" value="tiktok" />
+            <el-option label="抖音" value="douyin" />
             <el-option label="小红书" value="xiaohongshu" />
             <el-option label="微博" value="weibo" />
             <el-option label="B站" value="bilibili" />
@@ -46,7 +46,7 @@
       </template>
       
       <el-table
-        :data="kolList"
+        :data="influencerList"
         v-loading="loading"
         style="width: 100%"
       >
@@ -58,11 +58,11 @@
                 :size="40"
                 class="avatar"
               >
-                {{ row.name.charAt(0) }}
+                {{ row.nickname ? row.nickname.charAt(0) : 'U' }}
               </el-avatar>
               <div class="info">
-                <div class="name">{{ row.name }}</div>
-                <div class="tags">
+                <div class="name">{{ row.nickname || row.username || '未命名' }}</div>
+                <div class="tags" v-if="row.tags && row.tags.length > 0">
                   <el-tag
                     v-for="tag in row.tags"
                     :key="tag"
@@ -85,23 +85,23 @@
           </template>
         </el-table-column>
         
-        <el-table-column prop="followerCount" label="粉丝数" width="120">
+        <el-table-column prop="followers_count" label="粉丝数" width="120">
           <template #default="{ row }">
-            {{ formatNumber(row.followerCount) }}
+            {{ formatNumber(row.followers_count) }}
           </template>
         </el-table-column>
         
-        <el-table-column prop="likeCount" label="点赞数" width="120">
+        <el-table-column prop="likes_count" label="点赞数" width="120">
           <template #default="{ row }">
-            {{ formatNumber(row.likeCount) }}
+            {{ formatNumber(row.likes_count) }}
           </template>
         </el-table-column>
         
-        <el-table-column prop="totalWorks" label="作品数" width="100" />
+        <el-table-column prop="posts_count" label="作品数" width="100" />
         
-        <el-table-column prop="createdAt" label="创建时间" width="180">
+        <el-table-column prop="created_at" label="创建时间" width="180">
           <template #default="{ row }">
-            {{ formatTime(row.createdAt) }}
+            {{ formatTime(row.created_at) }}
           </template>
         </el-table-column>
         
@@ -113,7 +113,7 @@
             <el-button type="text" size="small" @click="viewWorks(row)">
               查看作品
             </el-button>
-            <el-button type="text" size="small" @click="editKOL(row)">
+            <el-button type="text" size="small" @click="editInfluencer(row)">
               编辑
             </el-button>
           </template>
@@ -141,65 +141,56 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
-import type { KOL } from '@/types'
+import type { Influencer, InfluencerQueryParams } from '@/types'
+import { kolApi } from '@/api/kol'
 
 const router = useRouter()
 
 // 响应式数据
 const loading = ref(false)
-const kolList = ref<KOL[]>([])
+const influencerList = ref<Influencer[]>([])
 const total = ref(0)
 
 const searchForm = reactive({
-  search: '',
+  nickname: '',
   platform: ''
 })
 
 const pagination = reactive({
   page: 1,
-  pageSize: 20
+  pageSize: 10
 })
 
 // 方法
-const fetchKOLList = async () => {
+const fetchInfluencerList = async () => {
   loading.value = true
   try {
-    // TODO: 从API获取达人列表
-    // 模拟数据
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // 构建查询参数
+    const params: InfluencerQueryParams = {
+      page: pagination.page,
+      page_size: pagination.pageSize,
+    }
+
+    // 添加搜索条件
+    if (searchForm.platform) {
+      params.platform = searchForm.platform
+    }
+    if (searchForm.nickname) {
+      params.nickname = searchForm.nickname
+    }
+
+    // 调用API获取达人列表
+    const response = await kolApi.getInfluencers(params)
     
-    kolList.value = [
-      {
-        id: '1',
-        name: '美食博主小王',
-        platform: 'xiaohongshu',
-        profileUrl: 'https://example.com',
-        avatar: 'https://example.com/avatar1.jpg',
-        description: '专注美食分享',
-        followerCount: 125000,
-        likeCount: 980000,
-        totalWorks: 234,
-        tags: ['美食', '生活'],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: '2',
-        name: '科技达人小李',
-        platform: 'tiktok',
-        profileUrl: 'https://example.com',
-        followerCount: 89000,
-        likeCount: 567000,
-        totalWorks: 156,
-        tags: ['科技', '数码'],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ]
+    influencerList.value = response.data || []
+    total.value = response.total || 0
     
-    total.value = 2
-  } catch (error) {
+    console.log('获取达人列表成功:', response)
+  } catch (error: any) {
     console.error('获取达人列表失败:', error)
+    ElMessage.error(error.message || '获取达人列表失败')
+    influencerList.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
@@ -207,23 +198,23 @@ const fetchKOLList = async () => {
 
 const handleSearch = () => {
   pagination.page = 1
-  fetchKOLList()
+  fetchInfluencerList()
 }
 
 const resetSearch = () => {
-  searchForm.search = ''
+  searchForm.nickname = ''
   searchForm.platform = ''
   handleSearch()
 }
 
 const handleSizeChange = (size: number) => {
   pagination.pageSize = size
-  fetchKOLList()
+  fetchInfluencerList()
 }
 
 const handleCurrentChange = (page: number) => {
   pagination.page = page
-  fetchKOLList()
+  fetchInfluencerList()
 }
 
 const handleImport = () => {
@@ -232,10 +223,11 @@ const handleImport = () => {
 
 const getPlatformName = (platform: string) => {
   const names: Record<string, string> = {
-    tiktok: '抖音',
+    douyin: '抖音',
     xiaohongshu: '小红书',
     weibo: '微博',
     bilibili: 'B站',
+    tiktok: '抖音',
     other: '其他'
   }
   return names[platform] || platform
@@ -243,6 +235,7 @@ const getPlatformName = (platform: string) => {
 
 const getPlatformType = (platform: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
   const types: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'danger'> = {
+    douyin: 'primary',
     tiktok: 'primary',
     xiaohongshu: 'danger',
     weibo: 'warning',
@@ -260,24 +253,25 @@ const formatNumber = (num: number) => {
 }
 
 const formatTime = (time: string) => {
+  if (!time) return '-'
   return dayjs(time).format('YYYY-MM-DD HH:mm')
 }
 
-const viewDetail = (kol: KOL) => {
+const viewDetail = (influencer: Influencer) => {
   ElMessage.info('查看详情功能开发中...')
 }
 
-const viewWorks = (kol: KOL) => {
-  router.push({ path: '/works-list', query: { kolId: kol.id } })
+const viewWorks = (influencer: Influencer) => {
+  router.push({ path: '/works-list', query: { kolId: influencer.id.toString() } })
 }
 
-const editKOL = (kol: KOL) => {
+const editInfluencer = (influencer: Influencer) => {
   ElMessage.info('编辑功能开发中...')
 }
 
 // 生命周期
 onMounted(() => {
-  fetchKOLList()
+  fetchInfluencerList()
 })
 </script>
 

@@ -41,11 +41,37 @@ export interface RegisterResponse {
   message: string
 }
 
-// 达人相关类型
+// 达人相关类型 - 匹配后端API返回结构
+export interface Influencer {
+  id: number
+  platform: string // douyin, xiaohongshu, weibo, bilibili等
+  platform_id: string // 平台ID
+  profile_url: string // 主页链接
+  username: string // 用户名
+  nickname: string // 昵称
+  avatar: string // 头像
+  bio: string // 简介
+  followers_count: number // 粉丝数
+  following_count: number // 关注数
+  posts_count: number // 作品数
+  likes_count: number // 点赞数
+  gender: string // 性别
+  age: number // 年龄
+  location: string // 地区
+  tags: string[] | null // 标签
+  verify_status: number // 认证状态(0未认证 1已认证)
+  is_active: boolean // 是否活跃
+  last_sync_at: string | null // 最后同步时间
+  created_at: string // 创建时间
+  updated_at: string // 更新时间
+}
+
+// 兼容旧的KOL类型
 export interface KOL {
   id: string
   name: string
   platform: 'tiktok' | 'xiaohongshu' | 'weibo' | 'bilibili' | 'other'
+  platformId?: string // 平台内的ID
   profileUrl: string
   avatar?: string
   description?: string
@@ -53,6 +79,9 @@ export interface KOL {
   likeCount: number
   totalWorks: number
   tags: string[]
+  isVerified?: boolean // 是否认证
+  region?: string // 地区
+  category?: string // 分类
   createdAt: string
   updatedAt: string
 }
@@ -126,6 +155,33 @@ export interface QueryParams {
   sortOrder?: 'asc' | 'desc'
   search?: string
   filters?: Record<string, any>
+}
+
+// 达人列表查询参数
+export interface InfluencerQueryParams {
+  page?: number
+  page_size?: number
+  platform?: string // 平台
+  username?: string // 用户名
+  nickname?: string // 昵称
+  gender?: string // 性别
+  location?: string // 地区
+  min_followers?: number // 最小粉丝数
+  max_followers?: number // 最大粉丝数
+  verify_status?: number // 认证状态(0未认证 1已认证)
+  is_active?: boolean // 是否活跃
+  sort_by?: string // 排序字段
+  sort_order?: string // 排序方式(asc/desc)
+}
+
+// 分页响应类型
+export interface PagedResponse<T = any> {
+  code: number
+  message: string
+  data: T[]
+  total: number
+  page: number
+  size: number
 }
 
 // 统计数据类型

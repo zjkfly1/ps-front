@@ -35,7 +35,7 @@
             clearable
             style="width: 120px"
           >
-            <el-option label="抖音" value="tiktok" />
+            <el-option label="抖音" value="douyin" />
             <el-option label="小红书" value="xiaohongshu" />
             <el-option label="微博" value="weibo" />
             <el-option label="B站" value="bilibili" />
