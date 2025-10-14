@@ -8,6 +8,7 @@ const Register = () => import('@/pages/Auth/Register.vue')
 const Layout = () => import('@/components/Layout/MainLayout.vue')
 const Dashboard = () => import('@/pages/Dashboard/Dashboard.vue')
 const ImportKOL = () => import('@/pages/Import/ImportKOL.vue')
+const ImportPosts = () => import('@/pages/Import/ImportPosts.vue')
 const KOLList = () => import('@/pages/KOL/KOLList.vue')
 const WorksList = () => import('@/pages/Works/WorksList.vue')
 const Credits = () => import('@/pages/Credits/Credits.vue')
@@ -55,6 +56,15 @@ const routes: RouteRecordRaw[] = [
         component: ImportKOL,
         meta: {
           title: '导入达人',
+          icon: 'Upload'
+        }
+      },
+      {
+        path: 'import-posts',
+        name: 'ImportPosts',
+        component: ImportPosts,
+        meta: {
+          title: '导入作品',
           icon: 'Upload'
         }
       },

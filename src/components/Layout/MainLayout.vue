@@ -62,6 +62,11 @@
             <template #title>导入达人</template>
           </el-menu-item>
           
+          <el-menu-item index="/import-posts">
+            <el-icon><Upload /></el-icon>
+            <template #title>导入作品</template>
+          </el-menu-item>
+          
           <el-menu-item index="/kol-list">
             <el-icon><User /></el-icon>
             <template #title>达人列表</template>
