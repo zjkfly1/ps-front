@@ -37,23 +37,30 @@
     <el-card class="list-card">
       <template #header>
         <div class="card-header">
-          <span>积分记录 ({{ total }})</span>
-          <div class="summary">
-            <span class="summary-item">
-              总充值: <strong class="charge">+{{ totalCharge }}</strong>
-            </span>
-            <span class="summary-item">
-              总消费: <strong class="consume">-{{ totalConsume }}</strong>
-            </span>
+          <div class="header-left">
+            <span>积分记录 ({{ total }})</span>
+            <div class="summary">
+              <span class="summary-item">
+                总充值: <strong class="charge">+{{ totalCharge }}</strong>
+              </span>
+              <span class="summary-item">
+                总消费: <strong class="consume">-{{ totalConsume }}</strong>
+              </span>
+            </div>
           </div>
+          <el-button type="success" @click="handleExport" :loading="exporting">
+            <el-icon><Download /></el-icon>
+            导出Excel
+          </el-button>
         </div>
       </template>
       
-      <el-table
-        :data="recordsList"
-        v-loading="loading"
-        style="width: 100%"
-      >
+      <div class="table-container">
+        <el-table
+          :data="recordsList"
+          v-loading="loading"
+          style="width: 100%"
+        >
         <el-table-column prop="type" label="类型" width="100">
           <template #default="{ row }">
             <el-tag :type="row.type === 'charge' ? 'success' : 'warning'">
@@ -98,6 +105,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
       
       <!-- 分页 -->
       <el-pagination
@@ -106,7 +114,7 @@
         :page-sizes="[10, 20, 50, 100]"
         :total="total"
         layout="total, sizes, prev, pager, next, jumper"
-        style="margin-top: 20px; text-align: right"
+        class="pagination"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
@@ -117,11 +125,14 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Download } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
+import * as XLSX from 'xlsx'
 import type { CreditRecord } from '@/types'
 
 // 响应式数据
 const loading = ref(false)
+const exporting = ref(false)
 const recordsList = ref<CreditRecord[]>([])
 const total = ref(0)
 const totalCharge = ref(0)
@@ -233,6 +244,45 @@ const viewTask = (taskId: string) => {
   ElMessage.info(`查看任务 ${taskId} 功能开发中...`)
 }
 
+// 导出Excel
+const handleExport = async () => {
+  if (recordsList.value.length === 0) {
+    ElMessage.warning('当前没有数据可以导出')
+    return
+  }
+
+  exporting.value = true
+  try {
+    // 准备导出数据
+    const exportData = recordsList.value.map((record) => ({
+      '类型': record.type === 'charge' ? '充值' : '消费',
+      '积分变动': (record.type === 'charge' ? '+' : '-') + record.amount,
+      '余额': record.balance,
+      '说明': record.description,
+      '关联任务': record.relatedTask || '-',
+      '时间': formatTime(record.createdAt)
+    }))
+
+    // 创建工作簿
+    const worksheet = XLSX.utils.json_to_sheet(exportData)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, '积分记录')
+
+    // 生成文件名
+    const fileName = `积分记录_${dayjs().format('YYYYMMDDHHmmss')}.xlsx`
+
+    // 导出文件
+    XLSX.writeFile(workbook, fileName)
+
+    ElMessage.success('导出成功')
+  } catch (error: any) {
+    console.error('导出失败:', error)
+    ElMessage.error('导出失败: ' + (error.message || '未知错误'))
+  } finally {
+    exporting.value = false
+  }
+}
+
 // 生命周期
 onMounted(() => {
   fetchRecords()
@@ -252,10 +302,27 @@ onMounted(() => {
   margin: 20px 0;
 }
 
+.table-container {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.pagination {
+  margin-top: 20px;
+  text-align: right;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 30px;
 }
 
 .summary {

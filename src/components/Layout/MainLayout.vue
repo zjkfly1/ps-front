@@ -91,7 +91,9 @@
       <!-- 主要内容区域 -->
       <el-main class="layout-main">
         <div class="content-wrapper">
-          <router-view />
+          <router-view v-slot="{ Component }">
+            <component :is="Component" />
+          </router-view>
         </div>
       </el-main>
     </el-container>
@@ -257,13 +259,16 @@ onMounted(() => {
 .layout-main {
   background: #f5f7fa;
   padding: 20px;
+  height: calc(100vh - 60px);
+  overflow: hidden;
 }
 
 .content-wrapper {
   background: #fff;
   border-radius: 8px;
   padding: 24px;
-  min-height: calc(100vh - 140px);
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  height: 100%;
+  overflow-y: auto;
 }
 </style>

@@ -38,18 +38,25 @@
       <template #header>
         <div class="card-header">
           <span>达人列表 ({{ total }})</span>
-          <el-button type="primary" @click="handleImport">
-            <el-icon><Plus /></el-icon>
-            导入达人
-          </el-button>
+          <div class="header-actions">
+            <el-button type="success" @click="handleExport" :loading="exporting">
+              <el-icon><Download /></el-icon>
+              导出Excel
+            </el-button>
+            <el-button type="primary" @click="handleImport">
+              <el-icon><Plus /></el-icon>
+              导入达人
+            </el-button>
+          </div>
         </div>
       </template>
       
-      <el-table
-        :data="influencerList"
-        v-loading="loading"
-        style="width: 100%"
-      >
+      <div class="table-container">
+        <el-table
+          :data="influencerList"
+          v-loading="loading"
+          style="width: 100%"
+        >
         <el-table-column label="达人信息" min-width="200">
           <template #default="{ row }">
             <div class="kol-info">
@@ -119,6 +126,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
       
       <!-- 分页 -->
       <el-pagination
@@ -127,7 +135,7 @@
         :page-sizes="[10, 20, 50, 100]"
         :total="total"
         layout="total, sizes, prev, pager, next, jumper"
-        style="margin-top: 20px; text-align: right"
+        class="pagination"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
@@ -139,8 +147,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Download } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
+import * as XLSX from 'xlsx'
 import type { Influencer, InfluencerQueryParams } from '@/types'
 import { kolApi } from '@/api/kol'
 
@@ -148,6 +157,7 @@ const router = useRouter()
 
 // 响应式数据
 const loading = ref(false)
+const exporting = ref(false)
 const influencerList = ref<Influencer[]>([])
 const total = ref(0)
 
@@ -269,6 +279,46 @@ const editInfluencer = (influencer: Influencer) => {
   ElMessage.info('编辑功能开发中...')
 }
 
+// 导出Excel
+const handleExport = async () => {
+  if (influencerList.value.length === 0) {
+    ElMessage.warning('当前没有数据可以导出')
+    return
+  }
+
+  exporting.value = true
+  try {
+    // 准备导出数据
+    const exportData = influencerList.value.map((influencer) => ({
+      '达人昵称': influencer.nickname || influencer.username || '未命名',
+      '平台': getPlatformName(influencer.platform),
+      '粉丝数': influencer.followers_count || 0,
+      '点赞数': influencer.likes_count || 0,
+      '作品数': influencer.posts_count || 0,
+      '标签': influencer.tags && influencer.tags.length > 0 ? influencer.tags.join(', ') : '',
+      '创建时间': formatTime(influencer.created_at)
+    }))
+
+    // 创建工作簿
+    const worksheet = XLSX.utils.json_to_sheet(exportData)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, '达人列表')
+
+    // 生成文件名
+    const fileName = `达人列表_${dayjs().format('YYYYMMDDHHmmss')}.xlsx`
+
+    // 导出文件
+    XLSX.writeFile(workbook, fileName)
+
+    ElMessage.success('导出成功')
+  } catch (error: any) {
+    console.error('导出失败:', error)
+    ElMessage.error('导出失败: ' + (error.message || '未知错误'))
+  } finally {
+    exporting.value = false
+  }
+}
+
 // 生命周期
 onMounted(() => {
   fetchInfluencerList()
@@ -288,10 +338,26 @@ onMounted(() => {
   margin: 20px 0;
 }
 
+.table-container {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.pagination {
+  margin-top: 20px;
+  text-align: right;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
 }
 
 .kol-info {

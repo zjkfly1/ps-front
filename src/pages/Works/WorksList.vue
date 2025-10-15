@@ -50,14 +50,19 @@
       <template #header>
         <div class="card-header">
           <span>作品列表 ({{ total }})</span>
+          <el-button type="success" @click="handleExport" :loading="exporting">
+            <el-icon><Download /></el-icon>
+            导出Excel
+          </el-button>
         </div>
       </template>
       
-      <el-table
-        :data="worksList"
-        v-loading="loading"
-        style="width: 100%"
-      >
+      <div class="table-container">
+        <el-table
+          :data="worksList"
+          v-loading="loading"
+          style="width: 100%"
+        >
         <el-table-column label="作品信息" min-width="300">
           <template #default="{ row }">
             <div class="work-info">
@@ -133,6 +138,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
       
       <!-- 分页 -->
       <el-pagination
@@ -141,7 +147,7 @@
         :page-sizes="[10, 20, 50, 100]"
         :total="total"
         layout="total, sizes, prev, pager, next, jumper"
-        style="margin-top: 20px; text-align: right"
+        class="pagination"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
@@ -153,14 +159,16 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Picture } from '@element-plus/icons-vue'
+import { Picture, Download } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
+import * as XLSX from 'xlsx'
 import { postsApi, type Post, type PostsQueryParams } from '@/api/posts'
 
 const route = useRoute()
 
 // 响应式数据
 const loading = ref(false)
+const exporting = ref(false)
 const worksList = ref<Post[]>([])
 const total = ref(0)
 
@@ -274,6 +282,50 @@ const openLink = (url: string) => {
   window.open(url, '_blank')
 }
 
+// 导出Excel
+const handleExport = async () => {
+  if (worksList.value.length === 0) {
+    ElMessage.warning('当前没有数据可以导出')
+    return
+  }
+
+  exporting.value = true
+  try {
+    // 准备导出数据
+    const exportData = worksList.value.map((work) => ({
+      '作品标题': work.title,
+      '平台': getPlatformName(work.platform),
+      '来源': getSourceName(work.source),
+      '播放数': work.views_count || 0,
+      '点赞数': work.likes_count || 0,
+      '评论数': work.comments_count || 0,
+      '分享数': work.shares_count || 0,
+      '收藏数': work.collect_count || 0,
+      '监测状态': work.enable_monitored ? '已开启' : '未开启',
+      '发布时间': formatTime(work.published_at),
+      '作品链接': work.post_url
+    }))
+
+    // 创建工作簿
+    const worksheet = XLSX.utils.json_to_sheet(exportData)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, '作品列表')
+
+    // 生成文件名
+    const fileName = `作品列表_${dayjs().format('YYYYMMDDHHmmss')}.xlsx`
+
+    // 导出文件
+    XLSX.writeFile(workbook, fileName)
+
+    ElMessage.success('导出成功')
+  } catch (error: any) {
+    console.error('导出失败:', error)
+    ElMessage.error('导出失败: ' + (error.message || '未知错误'))
+  } finally {
+    exporting.value = false
+  }
+}
+
 // 生命周期
 onMounted(() => {
   // 如果有platform查询参数，设置默认筛选
@@ -301,6 +353,17 @@ onMounted(() => {
 
 .list-card {
   margin: 20px 0;
+}
+
+.table-container {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.pagination {
+  margin-top: 20px;
+  text-align: right;
 }
 
 .card-header {
