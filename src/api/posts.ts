@@ -19,6 +19,62 @@ export interface ImportPostsResponse {
   estimatedTime?: number // 预计处理时间（秒）
 }
 
+// 作品查询参数类型
+export interface PostsQueryParams {
+  page?: number // 页码
+  page_size?: number // 每页数量
+  influencer_id?: number // 达人ID
+  platform?: string // 平台
+  title?: string // 标题
+  media_type?: string // 媒体类型
+  min_views?: number // 最小播放量
+  max_views?: number // 最大播放量
+  min_likes?: number // 最小点赞数
+  max_likes?: number // 最大点赞数
+  source?: number // 来源(1:用户导入 2:达人作品列表导入)
+  start_date?: string // 开始日期(YYYY-MM-DD)
+  end_date?: string // 结束日期(YYYY-MM-DD)
+  sort_by?: string // 排序字段
+  sort_order?: string // 排序方式(asc/desc)
+}
+
+// 作品数据类型
+export interface Post {
+  id: number
+  platform: string
+  platform_id: string
+  post_url: string
+  source: number // 1:用户导入 2:达人作品列表导入
+  title: string
+  description: string
+  cover_image: string
+  media_type: string
+  media_urls: string[] | null
+  duration: number
+  views_count: number
+  likes_count: number
+  comments_count: number
+  shares_count: number
+  collect_count: number
+  tags: string[] | null
+  location: string
+  published_at: string
+  enable_monitored: boolean
+  monitored_expire_at: string
+  schedule_id: number
+  last_sync_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+// 作品列表响应类型
+export interface PostsListResponse {
+  data: Post[]
+  total: number
+  page: number
+  size: number
+}
+
 /**
  * 作品相关API接口
  */
@@ -35,6 +91,35 @@ export const postsApi = {
       return response.data.data
     } else {
       throw new Error(response.data.message || '导入作品失败')
+    }
+  },
+
+  /**
+   * 获取作品列表
+   * @param params 查询参数
+   * @returns 作品列表
+   */
+  getPosts: async (params?: PostsQueryParams): Promise<PostsListResponse> => {
+    // 后端返回格式：{code, message, data: [...], total, page, size}
+    const response = await apiClient.get<{
+      code: number
+      message: string
+      data: Post[]
+      total: number
+      page: number
+      size: number
+    }>('/posts', { params })
+    
+    if (response.data.code === 200) {
+      // 返回统一的格式
+      return {
+        data: response.data.data || [],
+        total: response.data.total || 0,
+        page: response.data.page || 1,
+        size: response.data.size || 10
+      }
+    } else {
+      throw new Error(response.data.message || '获取作品列表失败')
     }
   }
 }

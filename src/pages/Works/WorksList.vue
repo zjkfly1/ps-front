@@ -13,21 +13,6 @@
             style="width: 200px"
           />
         </el-form-item>
-        <el-form-item label="达人">
-          <el-select
-            v-model="searchForm.kolId"
-            placeholder="选择达人"
-            clearable
-            style="width: 150px"
-          >
-            <el-option
-              v-for="kol in kolOptions"
-              :key="kol.id"
-              :label="kol.name"
-              :value="kol.id"
-            />
-          </el-select>
-        </el-form-item>
         <el-form-item label="平台">
           <el-select
             v-model="searchForm.platform"
@@ -36,9 +21,21 @@
             style="width: 120px"
           >
             <el-option label="抖音" value="douyin" />
-            <el-option label="小红书" value="xiaohongshu" />
+            <el-option label="小红书" value="xhs" />
             <el-option label="微博" value="weibo" />
+            <el-option label="快手" value="kuaishou" />
             <el-option label="B站" value="bilibili" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="来源">
+          <el-select
+            v-model="searchForm.source"
+            placeholder="选择来源"
+            clearable
+            style="width: 150px"
+          >
+            <el-option label="用户导入" :value="1" />
+            <el-option label="达人作品列表导入" :value="2" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -65,7 +62,7 @@
           <template #default="{ row }">
             <div class="work-info">
               <el-image
-                :src="row.thumbnail"
+                :src="row.cover_image"
                 :fit="'cover'"
                 class="thumbnail"
                 lazy
@@ -80,57 +77,57 @@
                 <div class="title">{{ row.title }}</div>
                 <div class="meta">
                   <el-tag size="small" type="info">{{ getPlatformName(row.platform) }}</el-tag>
-                  <span class="time">{{ formatTime(row.publishTime) }}</span>
+                  <el-tag size="small" :type="getSourceType(row.source)">{{ getSourceName(row.source) }}</el-tag>
+                  <span class="time">{{ formatTime(row.published_at) }}</span>
                 </div>
               </div>
             </div>
           </template>
         </el-table-column>
         
-        <el-table-column prop="likeCount" label="点赞数" width="100">
+        <el-table-column prop="views_count" label="播放数" width="100">
           <template #default="{ row }">
-            {{ formatNumber(row.likeCount) }}
+            {{ row.views_count ? formatNumber(row.views_count) : '-' }}
           </template>
         </el-table-column>
         
-        <el-table-column prop="commentCount" label="评论数" width="100">
+        <el-table-column prop="likes_count" label="点赞数" width="100">
           <template #default="{ row }">
-            {{ formatNumber(row.commentCount) }}
+            {{ formatNumber(row.likes_count) }}
           </template>
         </el-table-column>
         
-        <el-table-column prop="shareCount" label="分享数" width="100">
+        <el-table-column prop="comments_count" label="评论数" width="100">
           <template #default="{ row }">
-            {{ formatNumber(row.shareCount) }}
+            {{ formatNumber(row.comments_count) }}
           </template>
         </el-table-column>
         
-        <el-table-column prop="viewCount" label="播放数" width="100">
+        <el-table-column prop="shares_count" label="分享数" width="100">
           <template #default="{ row }">
-            {{ row.viewCount ? formatNumber(row.viewCount) : '-' }}
+            {{ formatNumber(row.shares_count) }}
           </template>
         </el-table-column>
         
-        <el-table-column label="标签" width="150">
+        <el-table-column prop="collect_count" label="收藏数" width="100">
           <template #default="{ row }">
-            <el-tag
-              v-for="tag in row.tags.slice(0, 2)"
-              :key="tag"
-              size="small"
-              style="margin-right: 4px"
-            >
-              {{ tag }}
-            </el-tag>
-            <span v-if="row.tags.length > 2" class="more-tags">...</span>
+            {{ formatNumber(row.collect_count) }}
           </template>
         </el-table-column>
         
-        <el-table-column label="操作" width="120">
+        <el-table-column label="监测状态" width="100">
+          <template #default="{ row }">
+            <el-tag v-if="row.enable_monitored" type="success" size="small">已开启</el-tag>
+            <el-tag v-else type="info" size="small">未开启</el-tag>
+          </template>
+        </el-table-column>
+        
+        <el-table-column label="操作" width="120" fixed="right">
           <template #default="{ row }">
             <el-button type="text" size="small" @click="viewDetail(row)">
               查看详情
             </el-button>
-            <el-button type="text" size="small" @click="openLink(row.url)">
+            <el-button type="text" size="small" @click="openLink(row.post_url)">
               打开链接
             </el-button>
           </template>
@@ -158,90 +155,58 @@ import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Picture } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
-import type { Work, KOL } from '@/types'
+import { postsApi, type Post, type PostsQueryParams } from '@/api/posts'
 
 const route = useRoute()
 
 // 响应式数据
 const loading = ref(false)
-const worksList = ref<Work[]>([])
-const kolOptions = ref<KOL[]>([])
+const worksList = ref<Post[]>([])
 const total = ref(0)
 
 const searchForm = reactive({
   search: '',
-  kolId: '',
-  platform: ''
+  platform: '',
+  source: undefined as number | undefined
 })
 
 const pagination = reactive({
   page: 1,
-  pageSize: 20
+  pageSize: 10
 })
 
 // 方法
 const fetchWorksList = async () => {
   loading.value = true
   try {
-    // TODO: 从API获取作品列表
-    // 模拟数据
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const params: PostsQueryParams = {
+      page: pagination.page,
+      page_size: pagination.pageSize
+    }
     
-    worksList.value = [
-      {
-        id: '1',
-        kolId: '1',
-        title: '今天分享一道超好吃的家常菜',
-        url: 'https://example.com/work1',
-        platform: 'xiaohongshu',
-        publishTime: new Date().toISOString(),
-        likeCount: 15600,
-        commentCount: 234,
-        shareCount: 89,
-        viewCount: 45000,
-        description: '简单易学的家常菜制作方法',
-        tags: ['美食', '家常菜', '简单'],
-        thumbnail: 'https://example.com/thumb1.jpg',
-        duration: 120,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: '2',
-        kolId: '2',
-        title: '最新iPhone评测，值得入手吗？',
-        url: 'https://example.com/work2',
-        platform: 'tiktok',
-        publishTime: new Date().toISOString(),
-        likeCount: 23400,
-        commentCount: 567,
-        shareCount: 145,
-        viewCount: 78000,
-        description: '详细评测最新iPhone的各项功能',
-        tags: ['科技', '手机', '评测'],
-        thumbnail: 'https://example.com/thumb2.jpg',
-        duration: 300,
-        createdAt: new Date().toISOString()
-      }
-    ]
+    // 添加筛选条件
+    if (searchForm.search) {
+      params.title = searchForm.search
+    }
+    if (searchForm.platform) {
+      params.platform = searchForm.platform
+    }
+    if (searchForm.source !== undefined) {
+      params.source = searchForm.source
+    }
     
-    total.value = 2
-  } catch (error) {
+    const result = await postsApi.getPosts(params)
+    
+    worksList.value = result.data || []
+    total.value = result.total || 0
+    
+  } catch (error: any) {
     console.error('获取作品列表失败:', error)
+    ElMessage.error(error.message || '获取作品列表失败')
+    worksList.value = []
+    total.value = 0
   } finally {
     loading.value = false
-  }
-}
-
-const fetchKOLOptions = async () => {
-  try {
-    // TODO: 从API获取达人选项
-    // 模拟数据
-    kolOptions.value = [
-      { id: '1', name: '美食博主小王' } as KOL,
-      { id: '2', name: '科技达人小李' } as KOL
-    ]
-  } catch (error) {
-    console.error('获取达人选项失败:', error)
   }
 }
 
@@ -252,8 +217,8 @@ const handleSearch = () => {
 
 const resetSearch = () => {
   searchForm.search = ''
-  searchForm.kolId = ''
   searchForm.platform = ''
+  searchForm.source = undefined
   handleSearch()
 }
 
@@ -269,13 +234,25 @@ const handleCurrentChange = (page: number) => {
 
 const getPlatformName = (platform: string) => {
   const names: Record<string, string> = {
-    tiktok: '抖音',
-    xiaohongshu: '小红书',
+    douyin: '抖音',
+    xhs: '小红书',
     weibo: '微博',
-    bilibili: 'B站',
-    other: '其他'
+    kuaishou: '快手',
+    bilibili: 'B站'
   }
   return names[platform] || platform
+}
+
+const getSourceName = (source: number) => {
+  const names: Record<number, string> = {
+    1: '用户导入',
+    2: '达人作品列表'
+  }
+  return names[source] || '未知'
+}
+
+const getSourceType = (source: number): 'success' | 'warning' => {
+  return source === 1 ? 'success' : 'warning'
 }
 
 const formatNumber = (num: number) => {
@@ -286,10 +263,10 @@ const formatNumber = (num: number) => {
 }
 
 const formatTime = (time: string) => {
-  return dayjs(time).format('MM-DD HH:mm')
+  return dayjs(time).format('YYYY-MM-DD HH:mm')
 }
 
-const viewDetail = (work: Work) => {
+const viewDetail = (work: Post) => {
   ElMessage.info('查看详情功能开发中...')
 }
 
@@ -299,12 +276,16 @@ const openLink = (url: string) => {
 
 // 生命周期
 onMounted(() => {
-  // 如果有kolId查询参数，设置默认筛选
-  if (route.query.kolId) {
-    searchForm.kolId = route.query.kolId as string
+  // 如果有platform查询参数，设置默认筛选
+  if (route.query.platform) {
+    searchForm.platform = route.query.platform as string
   }
   
-  fetchKOLOptions()
+  // 如果有source查询参数，设置默认筛选
+  if (route.query.source) {
+    searchForm.source = Number(route.query.source)
+  }
+  
   fetchWorksList()
 })
 </script>
