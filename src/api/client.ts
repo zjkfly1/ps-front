@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus'
 import router from '@/router'
 
 // API 基础配置
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://110.42.61.54:8080/api/v1'
 
 console.log('API基础地址:', API_BASE_URL)
 console.log('当前环境:', import.meta.env.MODE)
